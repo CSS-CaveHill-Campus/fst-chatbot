@@ -2,9 +2,7 @@
 	import { afterUpdate } from 'svelte';
 
 	let input = '';
-	let messages: { sender: string; text: string }[] = [
-		{ sender: 'bot', text: 'Hello! How can I help you today?' }
-	];
+	let messages: { sender: string; text: string }[] = [];
 
 	// Function to scroll to the bottom of the chat
 	function scrollToBottom() {
@@ -20,22 +18,24 @@
 	});
 
 	// Function to send a message
-	function sendMessage() {
+	async function sendMessage() {
 		if (input.trim() === '') return; // Prevent sending empty messages
 
 		messages = [...messages, { sender: 'user', text: input }];
-		input = '';
 
-		// Simulate a bot response with a delay
-		setTimeout(() => {
-			messages = [
-				...messages,
-				{
-					sender: 'bot',
-					text: 'I am a bot. I do not understand that yet.'
-				}
-			];
-		}, 2000); // 1 second delay
+		const response = await fetch('/api/chat', {
+			method: 'POST',
+			body: JSON.stringify({ message: input }),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		const data = await response.json();
+
+		messages = [...messages, { sender: 'bot', text: data.bot[0] }];
+
+		input = '';
 	}
 </script>
 
